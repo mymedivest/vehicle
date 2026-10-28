@@ -1,5 +1,5 @@
 /* ===== CONFIG: paste your deployed Google Apps Script web app URL ===== */
-const CONFIG = { API_URL: 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE', POLL_SEC: 10 };
+const CONFIG = { API_URL: 'https://script.google.com/macros/s/AKfycbzQ2wErd2e6oo64MIEI6kHdeRcmEOdsh3Vs6zA1DNM8L5s9-2SpfzQ5P3M9LoXMRUwH/exec', POLL_SEC: 10 };
 
 const CATS = ['Engine','Aircond System','Transmission System','Steering System','Door','Wiring','Wheel System','Tyre','Exhaust System','Electronic System','Radio','PPM','Gearbox','Clutch','Immobiliser','Others','Multiple Issues'];
 const KW = [['Engine',/eng|enj|enig/],['Aircond System',/air ?cond|a\/c/],['Transmission System',/transmission/],['Steering System',/steering/],['Door',/door|pintu/],['Wiring',/wiring|wayar/],['Wheel System',/wheel/],['Tyre',/tyre|tayar/],['Exhaust System',/exhaust|ekzos/],['Electronic System',/electronic/],['Radio',/radio/],['PPM',/ppm/],['Gearbox',/gear ?box/],['Clutch',/clutch/],['Immobiliser',/immobili/]];
