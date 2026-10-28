@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workshop2U | Vehicle Status Monitoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="login">
+  <form id="loginForm" class="glass">
+    <b class="logo">WORKSHOP<span>2U</span></b>
+    <p>Track your vehicle's real-time status</p>
+    <label>Username<input id="u" autocomplete="username" required></label>
+    <label>Password<input id="p" type="password" autocomplete="current-password" required></label>
+    <button class="btn primary">Sign in</button>
+    <div class="err" id="loginErr" role="alert"></div>
+  </form>
+</section>
+
+<div id="app" hidden>
+  <header class="top">
+    <b class="logo">WORKSHOP<span>2U</span></b>
+    <nav>
+      <button data-tab="dash" class="on">Dashboard</button>
+      <button data-tab="list">Work orders</button>
+      <button data-tab="users">Users</button>
+    </nav>
+    <div class="right">
+      <span id="who" class="clock"></span>
+      <span id="clock" class="clock"></span>
+      <button id="refresh" class="btn">Refresh</button>
+      <button id="logout" class="btn">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="tab-dash" class="tab">
+      <h1 class="title">Dashboard</h1>
+      <p class="sub">Open work orders across WR1, WR2 and WR3 &middot; <span id="asof"></span></p>
+
+      <div class="panel filters">
+        <label>Site <select id="fSite"></select></label>
+        <label>Workshop <select id="fWs"></select></label>
+        <button id="reset" class="btn">Reset</button>
+      </div>
+
+      <div id="kpis" class="kpis"></div>
+
+      <div class="grid">
+        <div class="panel"><h2>Ageing of open work orders</h2><div class="cv"><canvas id="cAge"></canvas></div></div>
+        <div class="panel"><h2>Vehicle quantity by site</h2><div class="cv"><canvas id="cSite"></canvas></div></div>
+        <div class="panel"><h2>Vehicle quantity by workshop</h2><div class="cv"><canvas id="cWs"></canvas></div></div>
+        <div class="panel">
+          <h2>Loaner provision <select id="loanBy"><option value="ws">By workshop</option><option value="site">By site</option></select></h2>
+          <div class="cv"><canvas id="cLoan"></canvas></div>
+        </div>
+        <div class="panel wide">
+          <h2>Work order category
+            <span class="pick"><select id="catScope"><option value="all">All</option><option value="ws">By workshop</option><option value="site">By site</option></select>
+            <select id="catItem" hidden></select></span>
+          </h2>
+          <div class="catbody"><div class="cv tall"><canvas id="cCat"></canvas></div><div id="catTable" class="tbl-wrap"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORK ORDERS LIST -->
+    <section id="tab-list" class="tab" hidden>
+      <h1 class="title">Work orders</h1>
+      <p class="sub">Every open vehicle, colour-coded by ageing</p>
+      <div class="panel filters"><label>Search <input id="q" placeholder="Vehicle, WO no, complaint..."></label><span id="count" class="sub"></span><button id="submitNew" class="btn primary" style="margin-left:auto" hidden>Submit new</button></div>
+      <div class="panel tbl-wrap"><table id="list"></table></div>
+    </section>
+
+    <!-- FORM -->
+    <dialog id="newDlg">
+      <h2 class="title" style="font-size:18px">Submit new work order</h2>
+      <p class="sub">Each submission adds a row to the Summary tab. Ageing and the &lt;30 / &gt;30 day columns are calculated for you.</p>
+      <form id="woForm" class="fgrid">
+        <label>Vehicle No *<input name="veh" required></label>
+        <label>Workshop *<select name="ws" required><option value="">Select</option><option>WR1</option><option>WR2</option><option>WR3</option></select></label>
+        <label>Site *<input name="site" list="siteList" required><datalist id="siteList"></datalist></label>
+        <label>Work Order No *<input name="wo" required></label>
+        <label>Complaint Date *<input name="cdate" type="date" required></label>
+        <label>Workshop Entry Date<input name="edate" type="date"></label>
+        <label>Loaner (no. of ambulances)<input name="loan" type="number" min="0" value="0"></label>
+        <label>Category *<select name="cat" id="catSel" required></select></label>
+        <label class="full">Complaint *<textarea name="complaint" rows="2" required></textarea></label>
+        <label>PR No<input name="prNo"></label>
+        <label>PR Date<input name="prDate" type="date"></label>
+        <label class="full">Status<textarea name="status" rows="3" placeholder="e.g. 27/10/2026 - Waiting part from vendor"></textarea></label>
+        <label>Mechanic<input name="mech"></label>
+        <label>Mechanic Contact No<input name="mechTel" type="tel"></label>
+        <label>Workshop Panel<input name="panel"></label>
+        <label>Panel Contact No<input name="panelTel" type="tel"></label>
+        <label>Report Title<input name="rTitle"></label>
+        <label>Report No<input name="rNo"></label>
+        <label>Report Submission Date<input name="rDate" type="date"></label>
+        <label>Price (RM)<input name="price" type="number" step="0.01" min="0"></label>
+        <div class="full"><button class="btn primary" id="saveBtn">Add to Summary sheet</button> <button type="button" class="btn" id="newCancel">Cancel</button></div>
+      </form>
+    </dialog>
+    <!-- USERS -->
+    <section id="tab-users" class="tab" hidden>
+      <h1 class="title">Users</h1>
+      <p class="sub">Create accounts and manage who can sign in</p>
+      <form id="userForm" class="panel fgrid">
+        <label>Username *<input name="username" required pattern="[A-Za-z0-9._\-]{3,30}" title="3-30 letters, numbers, . _ -"></label>
+        <label>Email *<input name="email" type="email" required></label>
+        <label>Password * (min 8 characters)<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+        <label>Role *<select name="role" id="roleSel" required></select></label>
+        <div class="full"><button class="btn primary">Add user</button></div>
+      </form>
+      <div class="panel tbl-wrap" style="margin-top:14px"><table id="userList"></table></div>
+    </section>
+  </main>
+  <dialog id="editDlg"><h2 class="title" style="font-size:18px">Edit work order</h2><form id="editForm" class="fgrid"></form></dialog>
+  <div id="toast" role="status"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

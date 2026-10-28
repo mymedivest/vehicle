@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workshop2U | New work order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2433;--mute:#667085;--line:#d9e0ea;--accent:#f26b21;--g:#2fb67c;--r:#e5484d}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 'Inter',system-ui,sans-serif;color:var(--ink);background:#f3f6fa;padding:20px}
+.card{max-width:960px;margin:auto;background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px}
+.logo{font:600 18px 'JetBrains Mono',monospace;letter-spacing:.04em}.logo span{color:var(--accent)}
+h1{font:600 22px 'JetBrains Mono',monospace;margin:12px 0 2px}
+p{color:var(--mute);margin:0 0 18px}
+form{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+label{display:grid;gap:4px;font-size:12px;color:var(--mute)}
+.full{grid-column:1/-1}
+input,select,textarea{font:inherit;color:var(--ink);padding:8px 10px;border:1px solid var(--line);border-radius:8px;min-width:0;background:#fff}
+:focus-visible{outline:2px solid #3b82f6;outline-offset:2px}
+button{padding:10px 18px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:600 14px inherit;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.hp{position:absolute;left:-9999px}
+#msg{margin-top:12px;font-weight:500;min-height:1.4em}
+#msg.ok{color:var(--g)}#msg.bad{color:var(--r)}
+@media(max-width:800px){form{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){form{grid-template-columns:1fr}body{padding:10px}.card{padding:16px}}
+</style>
+</head>
+<body>
+<div class="card">
+  <b class="logo">WORKSHOP<span>2U</span></b>
+  <h1>New work order</h1>
+  <p>Fields marked * are required. Your entry is added to the vehicle status sheet straight away.</p>
+  <form id="woForm">
+    <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+    <label>Vehicle No *<input name="veh" required></label>
+    <label>Workshop *<select name="ws" required><option value="">Select</option><option>WR1</option><option>WR2</option><option>WR3</option></select></label>
+    <label>Site *<input name="site" required></label>
+    <label>Work Order No *<input name="wo" required></label>
+    <label>Complaint Date *<input name="cdate" type="date" required></label>
+    <label>Workshop Entry Date<input name="edate" type="date"></label>
+    <label>Loaner (no. of ambulances)<input name="loan" type="number" min="0" value="0"></label>
+    <label>Category *<select name="cat" id="catSel" required></select></label>
+    <label class="full">Complaint *<textarea name="complaint" rows="2" required></textarea></label>
+    <label>PR No<input name="prNo"></label>
+    <label>PR Date<input name="prDate" type="date"></label>
+    <label class="full">Status<textarea name="status" rows="3" placeholder="e.g. 27/10/2026 - Waiting part from vendor"></textarea></label>
+    <label>Mechanic<input name="mech"></label>
+    <label>Mechanic Contact No<input name="mechTel" type="tel"></label>
+    <label>Workshop Panel<input name="panel"></label>
+    <label>Panel Contact No<input name="panelTel" type="tel"></label>
+    <label>Report Title<input name="rTitle"></label>
+    <label>Report No<input name="rNo"></label>
+    <label>Report Submission Date<input name="rDate" type="date"></label>
+    <label>Price (RM)<input name="price" type="number" step="0.01" min="0"></label>
+    <div class="full"><button id="saveBtn">Submit work order</button><div id="msg" role="status"></div></div>
+  </form>
+</div>
+<script>
+/* Paste the same Apps Script web app URL used in script.js. FORM_KEY must match the script property of the same name (optional). */
+const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+const FORM_KEY = '';
+const CATS = ['Engine','Aircond System','Transmission System','Steering System','Door','Wiring','Wheel System','Tyre','Exhaust System','Electronic System','Radio','PPM','Gearbox','Clutch','Immobiliser','Others','Multiple Issues'];
+document.getElementById('catSel').innerHTML = '<option value="">Select</option>' + CATS.map(c => `<option>${c}</option>`).join('');
+document.getElementById('woForm').onsubmit = async e => {
+  e.preventDefault();
+  const b = document.getElementById('saveBtn'), m = document.getElementById('msg');
+  b.disabled = true; b.textContent = 'Submitting...'; m.className = ''; m.textContent = '';
+  try {
+    if (API_URL.startsWith('PASTE')) throw new Error('API_URL is not set in form.html.');
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'submit', formKey: FORM_KEY, row: Object.fromEntries(new FormData(e.target)) }) });
+    const j = await res.json();
+    if (!j.ok) throw new Error(j.error);
+    m.className = 'ok'; m.textContent = 'Submitted. The work order has been added to the sheet.'; e.target.reset();
+  } catch (err) { m.className = 'bad'; m.textContent = 'Could not submit: ' + err.message; }
+  b.disabled = false; b.textContent = 'Submit work order';
+};
+</script>
+</body>
+</html>
